@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  Alert,
-  Text,
-  Image,
-  Dimensions,
-} from 'react-native'
-import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps'
+import { StyleSheet, Alert, Dimensions } from 'react-native'
+import MapView, { Marker } from 'react-native-maps'
 import Geolocation from '@react-native-community/geolocation'
 
 import { images, mapsOptions } from '../../utils'
@@ -102,7 +94,7 @@ const Maps = () => {
           longitudeDelta: 0.0231,
         }}
       >
-        <Marker coordinate={currentPosition} />
+        <Marker coordinate={currentPosition} image={images.markerUser} />
         {!!places.length && <MarkerPlaces places={places} />}
       </MapView>
       {!!places.length && (

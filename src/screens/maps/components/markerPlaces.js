@@ -6,12 +6,12 @@ import { Marker, Callout } from 'react-native-maps'
 const MarkerPlaces = ({ places }) => {
   return places.map((place, idx) => (
     <Marker
-      ref={mark => (place.mark = mark)}
       key={idx}
       coordinate={{
         latitude: place.geometry.location.lat,
         longitude: place.geometry.location.lng,
-      }}>
+      }}
+    >
       <>
         <Callout>
           <View>

@@ -7,6 +7,6 @@ module.exports = {
     'global-require': 'off',
     'no-console': 'off',
     'import/prefer-default-export': 'off',
-    'import/no-unresolved': 0
-  }
+    'import/no-unresolved': 0,
+  },
 }

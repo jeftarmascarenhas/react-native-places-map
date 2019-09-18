@@ -20,7 +20,8 @@ const SearchLocalForm = ({ placeholder, onPress, onClear }) => {
             if (onClear) {
               setValue('')
             }
-          }}>
+          }}
+        >
           <Icon name="search" size={15} color="#fff" />
         </S.SearchButton>
       </S.InputSearchContent>
