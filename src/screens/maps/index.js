@@ -1,42 +1,79 @@
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, View, Alert, Text, Image } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  Alert,
+  Text,
+  Image,
+  Dimensions,
+} from 'react-native'
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps'
 import Geolocation from '@react-native-community/geolocation'
 
-// import SearchLocalForm from '../../components/searchLocalForm'
-import images from '../../utils/images'
+import { images, mapsOptions } from '../../utils'
+import placeResults from '../../fake-data/places'
+import MarkerPlaces from './components/markerPlaces'
+import PlaceCarousel, {
+  PlaceInfor,
+  PlaceList,
+  PlaceTitle,
+  PlaceRating,
+  PlacePhoto,
+} from './components/placeCarousel'
 import * as S from './styled'
+
+const { width } = Dimensions.get('window')
 
 const Maps = () => {
   const [currentPosition, setCurrentPosition] = useState({
-    latitude: null,
-    longitude: null,
+    latitude: 0,
+    longitude: 0,
   })
+
   const [places, setPlaces] = useState([])
+
+  let mapViewRef = null
+  const urlPhoto =
+    'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference='
+  const apiKey = 'AIzaSyD1So5tKMwRkLBp6BCiH-Dvq3XB8de1Iyg'
   const getUrlWithParams = (
     lat,
     long,
     radius = 1500,
     type = 'restaurant',
-    API,
+    API = 'AIzaSyD1So5tKMwRkLBp6BCiH-Dvq3XB8de1Iyg',
   ) => {
-    const url =
-      'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='
-    const key = 'AIzaSyD1So5tKMwRkLBp6BCiH-Dvq3XB8de1Iyg'
-    return `${url}${lat},${long}&radius=${radius}&type=${type}&key=${key}`
+    return `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=1500&type=restaurant&key=${apiKey}`
+  }
+
+  const handleOnMomentumScrollEnd = event => {
+    const scrolled = event.nativeEvent.contentOffset.x
+    const place = scrolled > 0 ? scrolled / width : 0
+    const { location } = places[place].geometry
+    const { lat: latitude, lng: longitude } = location
+    mapViewRef.animateCamera({
+      center: {
+        latitude,
+        longitude,
+      },
+    })
   }
 
   useEffect(() => {
-    const getPlaces = async (latitude, longitude) => {
-      try {
-        const url = getUrlWithParams(latitude, longitude)
-        const response = await fetch(url)
-        const data = await response.json()
-        const { results } = data
-        setPlaces(results)
-      } catch (error) {
-        Alert.alert(JSON.stringify(error))
-      }
+    // const getPlaces = async (latitude, longitude) => {
+    //   try {
+    //     const url = getUrlWithParams(latitude, longitude)
+    //     const response = await fetch(url)
+    //     const data = await response.json()
+    //     const { results } = data
+    //     setPlaces(results)
+    //   } catch (error) {
+    //     Alert.alert(JSON.stringify(error))
+    //   }
+    // }
+    const getPlaces = (latitude, longitude) => {
+      setPlaces(placeResults.results)
     }
     Geolocation.getCurrentPosition(
       position => {
@@ -48,54 +85,48 @@ const Maps = () => {
         Alert.alert('Error', JSON.stringify(error))
       },
     )
-  }, [setPlaces])
+  }, [])
 
   return (
     <S.Container>
-      {currentPosition.latitude ? (
-        <MapView
-          style={{ ...StyleSheet.absoluteFillObject }}
-          provider={PROVIDER_GOOGLE}
-          rotateEnabled={false}
-          showsUserLocation
-          show
-          initialRegion={{
-            ...currentPosition,
-            latitudeDelta: 0.0142,
-            longitudeDelta: 0.0231,
-          }}>
-          <Marker coordinate={currentPosition}>
-            <Image source={images.markerUser} />
-          </Marker>
-          {places.length &&
-            places.map((place, idx) => (
-              <Marker
-                ref={mark => (place.mark = mark)}
-                key={idx}
-                coordinate={{
-                  latitude: place.geometry.location.lat,
-                  longitude: place.geometry.location.lng,
-                }}>
-                <>
-                  <Callout>
-                    <View>
-                      <View>
-                        <Text>{place.name}</Text>
-                        {place.opening_hours && (
-                          <Text>
-                            Open: {place.opening_hours.open_now ? 'YES' : 'NO'}
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                  </Callout>
-                </>
-              </Marker>
-            ))}
-        </MapView>
-      ) : null}
+      <MapView
+        ref={map => {
+          mapViewRef = map
+        }}
+        style={{ ...StyleSheet.absoluteFillObject }}
+        rotateEnabled={false}
+        customMapStyle={mapsOptions.customMapStyle}
+        initialRegion={{
+          ...currentPosition,
+          latitudeDelta: 0.0142,
+          longitudeDelta: 0.0231,
+        }}
+      >
+        <Marker coordinate={currentPosition} />
+        {!!places.length && <MarkerPlaces places={places} />}
+      </MapView>
+      {!!places.length && (
+        <PlaceCarousel onMomentumScrollEnd={handleOnMomentumScrollEnd}>
+          {places.map((place, idx) => (
+            <PlaceList width={width} key={idx}>
+              <PlacePhoto
+                source={{
+                  uri:
+                    'https://lh4.googleusercontent.com/-1wzlVdxiW14/USSFZnhNqxI/AAAAAAAABGw/YpdANqaoGh4/s1600-w400/Google%2BSydney',
+                }}
+              />
+              <PlaceInfor>
+                <PlaceTitle>{place.name}</PlaceTitle>
+                <PlaceRating>Rating: {place.rating}</PlaceRating>
+              </PlaceInfor>
+            </PlaceList>
+          ))}
+        </PlaceCarousel>
+      )}
     </S.Container>
   )
 }
+
+// place.geometry.location.lat
 
 export default Maps
