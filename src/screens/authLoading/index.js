@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
-import { Text, ActivityIndicator } from 'react-native'
 import PropTypes from 'prop-types'
 
 import { translate } from '../../locales'
+import Loading from '../../components/loading'
 import * as S from './styled'
 
 const promisse = () =>
@@ -29,8 +29,7 @@ class AuthLoading extends Component {
   render() {
     return (
       <S.Container>
-        <Text>{translate('Loading')}</Text>
-        <ActivityIndicator size="large" color="#cc" />
+        <Loading title={translate('Loading')} />
       </S.Container>
     )
   }

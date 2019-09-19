@@ -1,6 +1,6 @@
 const pt = {
   hello: 'Olá, Bem-vindo',
-  Loading: 'Aguarde...',
+  Loading: 'Aguarde',
 }
 
 export default pt

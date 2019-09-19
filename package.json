@@ -12,9 +12,12 @@
   },
   "dependencies": {
     "@react-native-community/geolocation": "^2.0.2",
+    "enzyme": "^3.10.0",
+    "enzyme-adapter-react-16": "^1.14.0",
     "i18n-js": "^3.3.0",
     "prop-types": "^15.7.2",
     "react": "16.8.6",
+    "react-dom": "^16.9.0",
     "react-native": "0.60.5",
     "react-native-gesture-handler": "^1.4.1",
     "react-native-maps": "0.25.0",
@@ -29,11 +32,14 @@
     "@babel/core": "^7.6.0",
     "@babel/runtime": "^7.6.0",
     "@react-native-community/eslint-config": "^0.0.5",
+    "@types/jest": "^24.0.18",
     "babel-jest": "^24.9.0",
+    "enzyme-to-json": "^3.4.0",
     "eslint": "^6.4.0",
     "eslint-plugin-prettier": "^3.1.1",
     "husky": "^3.0.5",
     "jest": "^24.9.0",
+    "jest-styled-components": "^6.3.3",
     "metro-react-native-babel-preset": "^0.56.0",
     "prettier": "^1.18.2",
     "react-test-renderer": "16.8.6"
@@ -44,6 +50,15 @@
     }
   },
   "jest": {
-    "preset": "react-native"
+    "preset": "react-native",
+    "setupFiles": [
+      "<rootDir>/src/setupTests.js"
+    ],
+    "snapshotSerializers": [
+      "enzyme-to-json/serializer"
+    ],
+    "testMatch": [
+      "<rootDir>/__tests__/**/?(*.)(spec|test).js"
+    ]
   }
 }

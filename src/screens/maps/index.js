@@ -3,9 +3,11 @@ import { StyleSheet, Alert, Dimensions } from 'react-native'
 import MapView, { Marker } from 'react-native-maps'
 import Geolocation from '@react-native-community/geolocation'
 
+import { translate } from '../../locales'
+import Loading from '../../components/loading'
 import { images, mapsOptions } from '../../utils'
-import placeResults from '../../fake-data/places'
-import MarkerPlaces from './components/markerPlaces'
+import CalloutPlaces from './components/calloutPlaces'
+import mapsService from '../../services/mapServece'
 import PlaceCarousel, {
   PlaceInfor,
   PlaceList,
@@ -26,22 +28,11 @@ const Maps = () => {
   const [places, setPlaces] = useState([])
 
   let mapViewRef = null
-  const urlPhoto =
-    'https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference='
-  const apiKey = 'AIzaSyD1So5tKMwRkLBp6BCiH-Dvq3XB8de1Iyg'
-  const getUrlWithParams = (
-    lat,
-    long,
-    radius = 1500,
-    type = 'restaurant',
-    API = 'AIzaSyD1So5tKMwRkLBp6BCiH-Dvq3XB8de1Iyg',
-  ) => {
-    return `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${long}&radius=1500&type=restaurant&key=${apiKey}`
-  }
 
   const handleOnMomentumScrollEnd = event => {
     const scrolled = event.nativeEvent.contentOffset.x
     const place = scrolled > 0 ? scrolled / width : 0
+    const { mark } = places[place]
     const { location } = places[place].geometry
     const { lat: latitude, lng: longitude } = location
     mapViewRef.animateCamera({
@@ -49,23 +40,32 @@ const Maps = () => {
         latitude,
         longitude,
       },
+      duration: 1000,
     })
+    if (mark) {
+      setTimeout(() => {
+        mark.showCallout()
+      }, 1000)
+    }
+  }
+
+  const mapReady = () => {
+    if (places.length && places[0].mark) {
+      const { mark } = places[0]
+      mark.showCallout()
+    }
   }
 
   useEffect(() => {
-    // const getPlaces = async (latitude, longitude) => {
-    //   try {
-    //     const url = getUrlWithParams(latitude, longitude)
-    //     const response = await fetch(url)
-    //     const data = await response.json()
-    //     const { results } = data
-    //     setPlaces(results)
-    //   } catch (error) {
-    //     Alert.alert(JSON.stringify(error))
-    //   }
-    // }
-    const getPlaces = (latitude, longitude) => {
-      setPlaces(placeResults.results)
+    const getPlaces = async (latitude, longitude) => {
+      try {
+        const response = await mapsService.getUrlWithParams(latitude, longitude)
+        const data = await response.json()
+        const { results } = data
+        setPlaces(results)
+      } catch (error) {
+        Alert.alert('Ops.. algo deu errado.', JSON.stringify(error))
+      }
     }
     Geolocation.getCurrentPosition(
       position => {
@@ -81,32 +81,46 @@ const Maps = () => {
 
   return (
     <S.Container>
-      <MapView
-        ref={map => {
-          mapViewRef = map
-        }}
-        style={{ ...StyleSheet.absoluteFillObject }}
-        rotateEnabled={false}
-        customMapStyle={mapsOptions.customMapStyle}
-        initialRegion={{
-          ...currentPosition,
-          latitudeDelta: 0.0142,
-          longitudeDelta: 0.0231,
-        }}
-      >
-        <Marker coordinate={currentPosition} image={images.markerUser} />
-        {!!places.length && <MarkerPlaces places={places} />}
-      </MapView>
+      {currentPosition.latitude ? (
+        <MapView
+          ref={map => {
+            mapViewRef = map
+          }}
+          style={{ ...StyleSheet.absoluteFillObject }}
+          rotateEnabled={false}
+          customMapStyle={mapsOptions.customMapStyle}
+          initialRegion={{
+            ...currentPosition,
+            latitudeDelta: 0.0142,
+            longitudeDelta: 0.0231,
+          }}
+          onMapReady={mapReady}
+        >
+          <Marker coordinate={currentPosition} image={images.markerUser} />
+          {!!places.length &&
+            places.map((place, idx) => (
+              <Marker
+                ref={mark => {
+                  place.mark = mark
+                }}
+                key={idx}
+                coordinate={{
+                  latitude: place.geometry.location.lat,
+                  longitude: place.geometry.location.lng,
+                }}
+              >
+                <CalloutPlaces place={place} />
+              </Marker>
+            ))}
+        </MapView>
+      ) : (
+        <Loading title={translate('Loading')} />
+      )}
       {!!places.length && (
         <PlaceCarousel onMomentumScrollEnd={handleOnMomentumScrollEnd}>
           {places.map((place, idx) => (
             <PlaceList width={width} key={idx}>
-              <PlacePhoto
-                source={{
-                  uri:
-                    'https://lh4.googleusercontent.com/-1wzlVdxiW14/USSFZnhNqxI/AAAAAAAABGw/YpdANqaoGh4/s1600-w400/Google%2BSydney',
-                }}
-              />
+              <PlacePhoto source={images.logo} />
               <PlaceInfor>
                 <PlaceTitle>{place.name}</PlaceTitle>
                 <PlaceRating>Rating: {place.rating}</PlaceRating>

@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<Loading /> rendering 1`] = `
+<Styled(View)>
+  <Styled(ActivityIndicator) />
+  <Styled(Text)>
+    Loading...
+  </Styled(Text)>
+</Styled(View)>
+`;
