@@ -23,8 +23,9 @@ Launches the test runner in the interactive watch mode.<br>
 
 ## Print this project
 
-![image of UI](src/assets/demonstration/splash-screen.jpeg)
+![image of UI](src/assets/images/demonstration/splash-screen.jpeg)
 
-![image of UI](src/assets/demonstration/screen-ios.png)
+![image of UI](src/assets/images/demonstration/screen-ios.png)
 
-![image of UI](src/assets/demonstration/screen-android.jpeg)
+![image of UI](src/assets/images/demonstration/screen-android.jpeg)
+![image of UI](src/assets/images/demonstration/screen-android-2.jpeg)
