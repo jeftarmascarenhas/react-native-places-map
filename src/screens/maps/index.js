@@ -4,8 +4,9 @@ import MapView, { Marker } from 'react-native-maps'
 import Geolocation from '@react-native-community/geolocation'
 
 import { translate } from '../../locales'
-import Loading from '../../components/loading'
 import { images, mapsOptions } from '../../utils'
+import Loading from '../../components/loading'
+import SearchLocales from '../../components/searchLocales'
 import CalloutPlaces from './components/calloutPlaces'
 import mapsService from '../../services/mapServece'
 import PlaceCarousel, {
@@ -49,6 +50,32 @@ const Maps = () => {
     }
   }
 
+  const getPlaces = async (latitude, longitude) => {
+    try {
+      const response = await mapsService.getUrlWithParams(latitude, longitude)
+      const data = await response.json()
+      const { results } = data
+      setPlaces(results)
+    } catch (error) {
+      Alert.alert('Ops.. algo deu errado.', JSON.stringify(error))
+    }
+  }
+
+  const handleOnLocationSelected = (data, { geometry }) => {
+    const {
+      location: { lat: latitude, lng: longitude },
+    } = geometry
+
+    setCurrentPosition({ latitude, longitude })
+    getPlaces(latitude, longitude)
+    if (places.length && places[0].mark) {
+      const { mark } = places[0]
+      setTimeout(() => {
+        mark.showCallout()
+      }, 1200)
+    }
+  }
+
   const mapReady = () => {
     if (places.length && places[0].mark) {
       const { mark } = places[0]
@@ -57,16 +84,6 @@ const Maps = () => {
   }
 
   useEffect(() => {
-    const getPlaces = async (latitude, longitude) => {
-      try {
-        const response = await mapsService.getUrlWithParams(latitude, longitude)
-        const data = await response.json()
-        const { results } = data
-        setPlaces(results)
-      } catch (error) {
-        Alert.alert('Ops.. algo deu errado.', JSON.stringify(error))
-      }
-    }
     Geolocation.getCurrentPosition(
       position => {
         const { latitude, longitude } = position.coords
@@ -87,9 +104,11 @@ const Maps = () => {
             mapViewRef = map
           }}
           style={{ ...StyleSheet.absoluteFillObject }}
+          showsUserLocation
+          loadingEnabled
           rotateEnabled={false}
           customMapStyle={mapsOptions.customMapStyle}
-          initialRegion={{
+          region={{
             ...currentPosition,
             latitudeDelta: 0.0142,
             longitudeDelta: 0.0231,
@@ -116,6 +135,7 @@ const Maps = () => {
       ) : (
         <Loading title={translate('Loading')} />
       )}
+      <SearchLocales onLocationSelected={handleOnLocationSelected} />
       {!!places.length && (
         <PlaceCarousel onMomentumScrollEnd={handleOnMomentumScrollEnd}>
           {places.map((place, idx) => (
